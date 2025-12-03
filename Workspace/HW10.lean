@@ -394,44 +394,61 @@ theorem forall_mixed_4
 
 /-- Basic 8.1: introduction of an existential quantifier. -/
 theorem exists_basic_1 (a : α) (hA : A a) : ∃ x : α, A x :=
-  sorry
-
+  Exists.intro a hA
 
 /-- Basic 8.2: existential elimination with a non-dependent target proposition `S`. -/
 theorem exists_basic_2
     (h  : ∃ x : α, A x)
     (hS : ∀ x : α, A x → S) :
-    S :=
-  sorry
+    S := by
+    apply Exists.elim h
+    intro a hA
+    apply hS a
+    exact hA
+
 
 
 /-- Basic 8.3: swapping the order of conjuncts under an existential. -/
 theorem exists_basic_3
     (h : ∃ x : α, A x ∧ B x) :
-    ∃ x : α, B x ∧ A x :=
-  sorry
+    ∃ x : α, B x ∧ A x := by
+    apply Exists.elim h
+    intro a aandb
+    exact Exists.intro a (And.intro aandb.right aandb.left)
 
 
 /-- Mixed 8.4: distributing existence over a disjunction. -/
 theorem exists_mixed_1
     (h : ∃ x : α, A x ∨ B x) :
     (∃ x : α, A x) ∨ (∃ x : α, B x) :=
-  sorry
+    Exists.elim h
+    fun a aorb => match aorb with
+    |Or.inl aExists => Or.inl (Exists.intro a aExists)
+    |Or.inr bExists => Or.inr (Exists.intro a bExists)
 
 
 /-- Mixed 8.5: combining a universal implication with an existential hypothesis. -/
 theorem exists_mixed_2
     (h₁ : ∀ x : α, A x → B x)
     (h₂ : ∃ x : α, A x) :
-    ∃ x : α, B x :=
-  sorry
+    ∃ x : α, B x := by
+    apply Exists.elim h₂
+    intro a hA
+    apply Exists.intro
+    apply h₁ a
+    exact hA
+
 
 
 /-- Mixed 8.6: from an existential counterexample to the failure of a universal statement. -/
 theorem exists_mixed_3
     (h : ∃ x : α, ¬ A x) :
-    ¬ (∀ x : α, A x) :=
-  sorry
+    ¬ (∀ x : α, A x) := by
+    apply Exists.elim h
+    intro a hA
+    intro x
+    apply hA
+    apply x a
 
 
 
@@ -456,71 +473,92 @@ to transport proofs and properties along equalities.
 
 
 /-- Basic 9.1: reflexivity of equality. -/
-theorem eq_basic_1 (x : α) : x = x :=
-  sorry
+theorem eq_basic_1 (x : α) : x = x := by
+  rfl
 
 
 /-- Basic 9.2: symmetry of equality. -/
-theorem eq_basic_2 {x y : α} (h : x = y) : y = x :=
-  sorry
+theorem eq_basic_2 {x y : α} (h : x = y) : y = x := by
+  rw[h]
 
 
 /-- Basic 9.3: transitivity of equality. -/
-theorem eq_basic_3 {x y z : α} (h₁ : x = y) (h₂ : y = z) : x = z :=
-  sorry
+theorem eq_basic_3 {x y z : α} (h₁ : x = y) (h₂ : y = z) : x = z := by
+  rw[h₁, h₂]
 
 
 /-- Basic 9.4: substitution of equals into a predicate. -/
-theorem eq_basic_4 {x y : α} (h : x = y) (hx : A x) : A y :=
-  sorry
+theorem eq_basic_4 {x y : α} (h : x = y) (hx : A x) : A y := by
+  rw [←h]
+  exact hx
 
 
 /-- OPTIONAL SELF-LEARN: Basic 9.5: congruence for a unary function. -/
-theorem eq_basic_5 {x y : α} (h : x = y) (f : α → α) : f x = f y :=
-  sorry   -- self study: go learn about `congrArg`
+theorem eq_basic_5 {x y : α} (h : x = y) (f : α → α) : f x = f y := by
+  apply congrArg
+  exact h -- self study: go learn about `congrArg`
 
 
 /-- Mixed 9.6: transporting an implication along equality. -/
 theorem eq_mixed_1 {x y : α}
     (h : x = y) :
-    (A x → P) → (A y → P) :=
-  sorry
-
+    (A x → P) → (A y → P) := by
+    intro aX aY
+    apply aX
+    rw [h]
+    exact aY
 
 /-- Mixed 9.7: transporting a conjunction of predicates along equality. -/
 theorem eq_mixed_2 {x y : α}
     (h : x = y) :
-    A x ∧ B x → A y ∧ B y :=
-  sorry
+    A x ∧ B x → A y ∧ B y := by
+    intro aandbx
+    rw[← h]
+    exact aandbx
 
 
 /-- Mixed 9.8: using equality inside an existential witness. -/
 theorem eq_mixed_3 {x y : α}
     (h : x = y) (hx : A x) :
-    ∃ z : α, z = y ∧ A z :=
-  sorry
+    ∃ z : α, z = y ∧ A z := by
+    apply Exists.intro x
+    apply And.intro
+    exact h
+    exact hx
+
+
 
 
 /-- Mixed 9.9: combining a universal statement with equality. -/
 theorem eq_mixed_4
     (h : ∀ z : α, A z)
     {a b : α} :
-    A b :=
-  h b
+    A b := by
+    apply h
 
 
 /-- Mixed 9.10: turning equality of elements into equivalence of properties. -/
 theorem eq_mixed_5 {x y : α}
     (h : x = y) :
-    A x ↔ A y :=
-  sorry
+    A x ↔ A y := by
+    apply Iff.intro
+    intro aX
+    rw[← h]
+    exact aX
+    intro aY
+    rw[h]
+    exact aY
 
 
 /-- Mixed 9.11: using equality together with negation. -/
 theorem eq_mixed_6 {x y : α}
     (h : x = y) :
-    ¬ A y → ¬ A x :=
-  sorry
+    ¬ A y → ¬ A x := by
+    intro naY
+    intro aX
+    apply naY
+    rw[← h]
+    exact aX
 
 
 end PredicateLogicExam
